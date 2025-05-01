@@ -1,16 +1,11 @@
 package eu.hn1f.droidcss
 
-import java.lang.Object
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.view.ContextThemeWrapper
-import android.view.View
-import android.view.View.GONE
 import android.view.View.OVER_SCROLL_NEVER
 import android.view.View.OnClickListener
 import android.view.View.OnLongClickListener
@@ -21,20 +16,18 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import de.robv.android.xposed.callbacks.XC_InitPackageResources
-import de.robv.android.xposed.callbacks.XC_LayoutInflated
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import eu.hn1f.droidcss.utils.XposedHook.Companion.findClass
-import eu.hn1f.droidcss.utils.callMethod
 import eu.hn1f.droidcss.utils.dumpChildViews
 import eu.hn1f.droidcss.utils.getField
 import eu.hn1f.droidcss.utils.getFieldSilently
 import eu.hn1f.droidcss.utils.hookConstructor
 import eu.hn1f.droidcss.utils.hookMethod
-import eu.hn1f.droidcss.utils.setField
-import eu.hn1f.droidcss.utils.setFieldSilently
 
+@Suppress("UNUSED_PARAMETER")
 class SysUI {
 
+    @Suppress("UNUSED_PARAMETER")
     @SuppressLint("SetTextI18n", "DiscouragedApi")
     fun onLoad(loadPackageParam: XC_LoadPackage.LoadPackageParam) {
         val androidView = findClass("android.view.View")
@@ -106,7 +99,7 @@ class SysUI {
             }
             c.hookMethod("handleStateChanged").runBefore { param ->
                 val t: LinearLayout = param.thisObject as LinearLayout
-                val state: Int = param.args[0].getField("state") as Int
+                // val state: Int = param.args[0].getField("state") as Int
                 val lab: String? = param.args[0].getFieldSilently("label") as String?
 
                 val button: Button = t.findViewWithTag("buttonTile")
@@ -117,7 +110,7 @@ class SysUI {
                 val t: LinearLayout = param.thisObject as LinearLayout
                 val state: Int = param.args[0].getField("state") as Int
                 val lab: String? = param.args[0].getFieldSilently("label") as String?
-                val icon: Object? = param.args[0].getFieldSilently("icon") as Object?
+                // val icon: Object? = param.args[0].getFieldSilently("icon") as Object?
                 // Not active state
                 val defaultState: Int = param.args[0].getField("DEFAULT_STATE") as Int
 
@@ -141,50 +134,6 @@ class SysUI {
             }
         }
 
-        val qsFooterView = findClass("com.android.systemui.qs.QSFooterView")
-
-        if(qsFooterView != null) {
-            Log.v("DroidCSS", "Hooked QSFooterView")
-
-            /* qsFooterView.hookConstructor().runAfter { param ->
-                (param.thisObject as FrameLayout).visibility = GONE;
-            }
-
-            qsFooterView.hookMethod("updateResources").runBefore { param ->
-                (param.thisObject as FrameLayout).visibility = GONE;
-                param.result = null
-            } */
-        }
-
-        val qsPanel = findClass("com.android.systemui.qs.QSPanel")
-
-        if(qsPanel != null) {
-            Log.v("DroidCSS", "Hooked QSPanel")
-            // Force non-collapsable panel
-            qsPanel.hookConstructor().runAfter { param ->
-                param.thisObject.setField("mCanCollapse", false)
-                param.thisObject.callMethod("setExpanded", true)
-            }
-            qsPanel.hookMethod("setCanCollapse").runBefore { param ->
-                param.result = null
-            }
-            qsPanel.hookMethod("setSquishinessFraction").runBefore { param ->
-                param.args[0] = 1.0f
-            }
-        }
-
-        val quickQsPanel = findClass("com.android.systemui.qs.QuickQSPanel")
-        if(quickQsPanel != null) {
-            Log.v("DroidCSS", "Hooked QuickQSPanel")
-        }
-
-        val qsSquishinessController = findClass("com.android.systemui.qs.QSSquishinessController")
-        if(qsSquishinessController != null) {
-            Log.v("DroidCSS", "Hooked QSSquishinessController")
-            qsSquishinessController.hookMethod("updateSquishiness").runBefore { param ->
-                param.thisObject.setFieldSilently("squishiness", 1f)
-            }
-        }
 
         val qsImpl = findClass("com.android.systemui.qs.QSImpl")
         if(qsImpl != null) {
@@ -196,6 +145,15 @@ class SysUI {
 
         //val phoneStatusBarView = findClass("com.android.systemui.statusbar.phone.PhoneStatusBarView")
         //phoneStatusBarView
+
+        val mSwitch = findClass("android.widget.Switch")
+
+        mSwitch.hookConstructor().runBefore { param ->
+            param.args[0] = ContextThemeWrapper(param.args[0] as Context, android.R.style.Widget_Material_CompoundButton_Switch)
+            if(param.args.size > 2) {
+                param.args[2] = android.R.style.Widget_Material_CompoundButton_Switch
+            }
+        }
 
         Log.v("DroidCSS", "Hello SystemUI mrrp~~ :3")
     }
