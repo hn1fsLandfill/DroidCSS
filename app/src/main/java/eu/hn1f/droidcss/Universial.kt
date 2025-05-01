@@ -1,10 +1,10 @@
 package eu.hn1f.droidcss
 
-import android.R
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.content.res.Resources.Theme
 import android.graphics.Color
 import android.graphics.PorterDuff.Mode
@@ -18,17 +18,25 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage
 import eu.hn1f.droidcss.utils.XposedHook.Companion.findClass
 import eu.hn1f.droidcss.utils.callMethod
 import eu.hn1f.droidcss.utils.callMethodSilently
-import eu.hn1f.droidcss.utils.dumpChildViews
-import eu.hn1f.droidcss.utils.dumpPreferenceKeys
 import eu.hn1f.droidcss.utils.hookConstructor
 import eu.hn1f.droidcss.utils.hookMethod
-import eu.hn1f.droidcss.utils.setField
 
 @SuppressLint("DiscouragedApi")
 class Universial {
-    fun isDarkMode(context: Context): Boolean {
+    private fun isDarkMode(context: Context): Boolean {
         val darkModeFlag = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         return darkModeFlag == Configuration.UI_MODE_NIGHT_YES
+    }
+    private fun getAppCompat(themeName: String, resId: Int, res: Resources): Int {
+        return res.getIdentifier(themeName
+            .replace("GoogleMaterial3","Material3")
+            .replace("Material3.","AppCompat.")
+            .replace("DynamicColors.", "")
+            .replace(".TextButton", "")
+            .replace(".TonalButton","")
+            .replace(".DarkActionBar",".ActionBar")
+            .replace(".MaterialAlertDialog",".AlertDialog"), res.getResourceTypeName(resId), res.getResourcePackageName(resId)
+        )
     }
 
     private fun modifyMaterial3Views(viewGroup: ViewGroup) {
@@ -55,15 +63,7 @@ class Universial {
                     newOverlay = "."
                 }
 
-                val k = childView.resources.getIdentifier(t
-                    .replace("GoogleMaterial3","Material3")
-                    .replace("Material3.","AppCompat.")
-                    .replace("DynamicColors.", "")
-                    .replace(".TextButton", "")
-                    .replace(".TonalButton","")
-                    .replace(".DarkActionBar",".ActionBar")
-                    .replace(".MaterialAlertDialog",".AlertDialog")
-                    .replace(isOverlay, newOverlay), childView.resources.getResourceTypeName(resId), childView.resources.getResourcePackageName(resId))
+                val k = getAppCompat(t.replace(isOverlay, newOverlay), resId, childView.resources)
                 if(k != 0) {
                     Log.v("DroidCSS","Success!")
                     childView.context.setTheme(k)
@@ -84,7 +84,7 @@ class Universial {
     }
 
     @SuppressLint("SetTextI18n")
-    fun onLoad(loadPackageParam: XC_LoadPackage.LoadPackageParam) {
+    fun onLoad(@Suppress("UNUSED_PARAMETER") loadPackageParam: XC_LoadPackage.LoadPackageParam) {
         //val c = findClass("com.android.settings")
         //if (c != null) {
             /* TODO */
@@ -107,26 +107,19 @@ class Universial {
                 }
             } else if(t.contains("Material3.")) {
                 Log.v("DroidCSS","Replacing Material3 theme")
-                val k = c.resources.getIdentifier(t
-                    .replace("GoogleMaterial3","Material3")
-                    .replace("Material3.","AppCompat.")
-                    .replace("DynamicColors.", "")
-                    .replace(".TextButton", "")
-                    .replace(".TonalButton","")
-                    .replace(".DarkActionBar",".ActionBar")
-                    .replace(".MaterialAlertDialog",".AlertDialog"), c.resources.getResourceTypeName(param.args[0] as Int), c.resources.getResourcePackageName(param.args[0] as Int))
+                var k = getAppCompat(t, param.args[0] as Int, c.resources)
                 if(k != 0) {
                     Log.v("DroidCSS","Success!")
                     param.args[0] = k
                 } else {
-                    var addt = "";
+                    var type = ""
                     var isOverlay = "Overlay"
                     if(t.contains(".Button")) {
-                        addt = ".Button"
+                        type = ".Button"
                         isOverlay = ""
-                        Log.v("DroidCSS", "Button fallback: Theme$isOverlay.AppCompat$addt")
+                        Log.v("DroidCSS", "Button fallback: Theme$isOverlay.AppCompat$type")
                     }
-                    val k = c.resources.getIdentifier("Theme$isOverlay.AppCompat$addt", c.resources.getResourceTypeName(param.args[0] as Int), c.resources.getResourcePackageName(param.args[0] as Int))
+                    k = c.resources.getIdentifier("Theme$isOverlay.AppCompat$type", c.resources.getResourceTypeName(param.args[0] as Int), c.resources.getResourcePackageName(param.args[0] as Int))
                     if(k != 0) {
                         Log.v("DroidCSS","Success using fallback")
                         param.args[0] = k
@@ -139,7 +132,7 @@ class Universial {
 
         resTheme.hookMethod("setTo").runBefore { param ->
             val c: Theme = param.thisObject as Theme
-            val c2: Theme = param.args[0] as Theme;
+            val c2: Theme = param.args[0] as Theme
             /*if( == 0) {
                 return@runBefore
             } */
@@ -171,17 +164,16 @@ class Universial {
 
         mSwitch.hookConstructor().runBefore { param ->
             Log.v("DroidCSS", "Attempt to use MaterialSwitch, forcing framework Switch Theme")
-            var theme = R.style.Widget_Material_Light_CompoundButton_Switch
+            var theme = android.R.style.Widget_Material_Light_CompoundButton_Switch
 
             if(isDarkMode(param.args[0] as Context)) {
                 Log.v("DroidCSS","Using Dark switch")
-                theme = R.style.Widget_Material_CompoundButton_Switch
+                theme = android.R.style.Widget_Material_CompoundButton_Switch
             }
 
             param.args[0] = ContextThemeWrapper(param.args[0] as Context, theme)
 
-            val argSize: Int = param.args.size
-
+            // val argSize: Int = param.args.size
             //Log.v("DroidCSS","Switch argsize $argSize")
 
             if(param.args.size > 2) {
@@ -197,10 +189,7 @@ class Universial {
 
             s.callMethodSilently("setShowText", false)
             s.callMethodSilently("setTrackDecorationTintList", ColorStateList.valueOf(Color.parseColor("#00FFFFFF")))
-            //s.callMethodSilently("setTrackDecorationDrawable", null)
             s.callMethodSilently("setTrackDecorationTintMode", Mode.SRC_IN)
-            //s.setPadding(0,0,0,0)
-            //s.setCompoundDrawables(null, null, null, null)
         }
 
         //mSwitch.hookMethod("")
