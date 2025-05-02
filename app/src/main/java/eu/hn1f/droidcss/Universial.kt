@@ -10,8 +10,6 @@ import android.graphics.Color
 import android.graphics.PorterDuff.Mode
 import android.util.Log
 import android.view.ContextThemeWrapper
-import android.view.View
-import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.Switch
 import de.robv.android.xposed.callbacks.XC_LoadPackage
@@ -27,6 +25,7 @@ class Universial {
         val darkModeFlag = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         return darkModeFlag == Configuration.UI_MODE_NIGHT_YES
     }
+
     private fun getAppCompat(themeName: String, resId: Int, res: Resources): Int {
         return res.getIdentifier(themeName
             .replace("GoogleMaterial3","Material3")
@@ -39,7 +38,7 @@ class Universial {
         )
     }
 
-    private fun modifyMaterial3Views(viewGroup: ViewGroup) {
+    /* private fun modifyMaterial3Views(viewGroup: ViewGroup) {
         for (i in 0 until viewGroup.childCount) {
             val childView = viewGroup.getChildAt(i)
             val resId = childView.context.theme.callMethod("getAppliedStyleResId") as Int
@@ -81,7 +80,7 @@ class Universial {
             } // else {
             //}
         }
-    }
+    } */
 
     @SuppressLint("SetTextI18n")
     fun onLoad(@Suppress("UNUSED_PARAMETER") loadPackageParam: XC_LoadPackage.LoadPackageParam) {
@@ -97,6 +96,7 @@ class Universial {
                 return@runBefore
             }
             val t = c.resources.getResourceEntryName(param.args[0] as Int)
+            Log.v("DroidCSS","Attempt to apply $t")
 
             if(t.contains("MainActivityTheme")) {
                 Log.v("DroidCSS","Forcing AppCompat on Activity Theme")
@@ -106,28 +106,12 @@ class Universial {
                     param.args[0] = k
                 }
             } else if(t.contains("Material3.")) {
-                Log.v("DroidCSS","Replacing Material3 theme")
-                var k = getAppCompat(t, param.args[0] as Int, c.resources)
+                val k = getAppCompat(t, param.args[0] as Int, c.resources)
                 if(k != 0) {
-                    Log.v("DroidCSS","Success!")
+                    Log.v("DroidCSS","Successfully replaced Material3 theme!")
                     param.args[0] = k
-                } else {
-                    var type = ""
-                    var isOverlay = "Overlay"
-                    if(t.contains(".Button")) {
-                        type = ".Button"
-                        isOverlay = ""
-                        Log.v("DroidCSS", "Button fallback: Theme$isOverlay.AppCompat$type")
-                    }
-                    k = c.resources.getIdentifier("Theme$isOverlay.AppCompat$type", c.resources.getResourceTypeName(param.args[0] as Int), c.resources.getResourcePackageName(param.args[0] as Int))
-                    if(k != 0) {
-                        Log.v("DroidCSS","Success using fallback")
-                        param.args[0] = k
-                    }
                 }
             }
-
-            Log.v("DroidCSS","Attempt to apply $t")
         }
 
         resTheme.hookMethod("setTo").runBefore { param ->
@@ -138,8 +122,16 @@ class Universial {
             } */
             //c2.
             val t = c.resources.getResourceEntryName(c2.callMethod("getAppliedStyleResId") as Int)
-
             Log.v("DroidCSS","Attempt to set style $t")
+
+            if(t.contains("Material3.")) {
+                val r = getAppCompat(t, c2.callMethod("getAppliedStyleResId") as Int, c2.resources)
+
+                if(r != 0) {
+                    Log.v("DroidCSS", "Successfully replaced Material3")
+                    param.result = c.applyStyle(r, true)
+                }
+            }
         }
 
         /*resTheme.hookConstructor().runBefore { param ->
@@ -173,9 +165,6 @@ class Universial {
 
             param.args[0] = ContextThemeWrapper(param.args[0] as Context, theme)
 
-            // val argSize: Int = param.args.size
-            //Log.v("DroidCSS","Switch argsize $argSize")
-
             if(param.args.size > 2) {
                 param.args[2] = theme
             }
@@ -192,20 +181,46 @@ class Universial {
             s.callMethodSilently("setTrackDecorationTintMode", Mode.SRC_IN)
         }
 
-        //mSwitch.hookMethod("")
+        // com/google/android/material/dialog/MaterialAlertDialogBuilder
+        val mDialog = findClass("com.google.android.material.dialog.MaterialAlertDialogBuilder")
+        val compatDialog = findClass("androidx.appcompat.app.AlertDialog.Builder")
 
-        val mLayoutInflater = findClass("android.view.LayoutInflater")
+        // We can proxy this one according to Material Component's documentation
+        // "The type of dialog returned is still an AlertDialog; there is no specific Material
+        // implementation of AlertDialog."
+        mDialog.hookConstructor().runBefore { param ->
+            Log.v("DroidCSS", "Attempt to use MaterialDialog, forcing AppCompat Dialog")
+            var theme = android.R.style.Theme_Material_Light_Dialog
 
-        mLayoutInflater.hookMethod("inflate").runAfter { param ->
-            val t: View? = param.result as View?
-            // Log.v("DroidCSS", "Attempt to inflate View")
-
-            if(t is ViewGroup) {
-                modifyMaterial3Views(t)
+            if(isDarkMode(param.args[0] as Context)) {
+                Log.v("DroidCSS","Using Dark Dialog")
+                theme = android.R.style.Theme_Material_Dialog
             }
-            //t.dumpChildViews()
+
+            param.args[0] = ContextThemeWrapper(param.args[0] as Context, theme)
+
+            if (compatDialog != null) {
+                param.result = compatDialog.constructors[0].newInstance(param.args[0])
+            }
         }
-        //com.google.android.material.materialswitch.MaterialSwitch
+
+        val mButton = findClass("com.google.android.material.button.MaterialButton")
+
+        mButton.hookConstructor().runAfter { param ->
+            Log.v("DroidCSS", "Attempt to use MaterialButton, forcing framework Button Theme")
+            var theme = android.R.style.Widget_Material_Light_Button
+
+            if(isDarkMode(param.args[0] as Context)) {
+                Log.v("DroidCSS","Using Dark button")
+                theme = android.R.style.Widget_Material_Button
+            }
+
+            (param.thisObject.callMethod("getContext") as Context).setTheme(theme)
+
+            if(param.args.size > 2) {
+                param.args[2] = theme
+            }
+        }
 
         Log.v("DroidCSS", "Hooked into app mrrp~~ :3")
     }

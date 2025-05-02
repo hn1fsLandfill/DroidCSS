@@ -149,6 +149,7 @@ class SysUI {
         val mSwitch = findClass("android.widget.Switch")
 
         mSwitch.hookConstructor().runBefore { param ->
+            Log.v("DroidCSS", "Forcing Framework Switch style")
             param.args[0] = ContextThemeWrapper(param.args[0] as Context, android.R.style.Widget_Material_CompoundButton_Switch)
             if(param.args.size > 2) {
                 param.args[2] = android.R.style.Widget_Material_CompoundButton_Switch
