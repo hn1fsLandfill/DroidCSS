@@ -157,10 +157,10 @@ class Universial {
 
         mButton.hookConstructor().runAfter { param ->
             Log.v("DroidCSS", "Attempt to use MaterialButton, forcing framework Button Theme")
-            var theme = android.R.style.Widget_Material_Light_Button
+            var theme = BUTTON_THEME_LIGHT
             if(isDarkMode(param.args[0] as Context)) {
                 Log.v("DroidCSS","Using Dark button")
-                theme = android.R.style.Widget_Material_Button
+                theme = BUTTON_THEME
             }
 
             val db = Button(ContextThemeWrapper(param.args[0] as Context, theme))

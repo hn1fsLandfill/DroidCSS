@@ -50,8 +50,11 @@ class SysUI {
             c.hookConstructor().runAfter { param ->
                 val t: LinearLayout = param.thisObject as LinearLayout
                 val tl: TextView = t.getField("label") as TextView
-
-                val butt = Button(ContextThemeWrapper(t.context, android.R.style.Widget_Material_Button), null, android.R.style.Widget_Material_Button)
+                var theme = BUTTON_THEME_LIGHT
+                if(isDarkMode(t.context)) {
+                    theme = BUTTON_THEME
+                }
+                val butt = Button(ContextThemeWrapper(t.context, theme), null, theme)
                 butt.text = tl.text
                 butt.layoutParams = LayoutParams(
                     MarginLayoutParams.MATCH_PARENT, MarginLayoutParams.MATCH_PARENT
@@ -155,10 +158,10 @@ class SysUI {
                 return@runAfter
             }
             isInHook = true
-            var theme = android.R.style.Widget_Material_Light_CompoundButton_Switch
+            var theme = SWITCH_THEME_LIGHT
             val s = param.thisObject as Switch
             if(isDarkMode(s.context)) {
-                theme = android.R.style.Widget_Material_CompoundButton_Switch
+                theme = SWITCH_THEME
             }
             val ds = Switch(ContextThemeWrapper(s.context, theme))
             s.trackDrawable = ds.trackDrawable
