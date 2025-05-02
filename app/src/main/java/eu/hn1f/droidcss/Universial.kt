@@ -20,13 +20,13 @@ import eu.hn1f.droidcss.utils.callMethodSilently
 import eu.hn1f.droidcss.utils.hookConstructor
 import eu.hn1f.droidcss.utils.hookMethod
 
+fun isDarkMode(context: Context): Boolean {
+    val darkModeFlag = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+    return darkModeFlag == Configuration.UI_MODE_NIGHT_YES
+}
+
 @SuppressLint("DiscouragedApi")
 class Universial {
-    private fun isDarkMode(context: Context): Boolean {
-        val darkModeFlag = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        return darkModeFlag == Configuration.UI_MODE_NIGHT_YES
-    }
-
     private fun getAppCompat(themeName: String, resId: Int, res: Resources): Int {
         val newThemeName = themeName
             .replace("GoogleMaterial3","Material3")
@@ -181,6 +181,10 @@ class Universial {
             b.setTextColor(db.textColors)
             b.setHintTextColor(db.hintTextColors)
             b.setLinkTextColor(db.linkTextColors)
+        }
+
+        mButton.hookMethod("setShapeAppearanceModel").runBefore { param ->
+            param.result = null
         }
 
         Log.v("DroidCSS", "Hooked into app mrrp~~ :3")

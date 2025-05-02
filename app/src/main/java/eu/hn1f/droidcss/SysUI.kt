@@ -1,7 +1,6 @@
 package eu.hn1f.droidcss
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.util.Log
@@ -14,6 +13,7 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.Switch
 import android.widget.TextView
 import de.robv.android.xposed.callbacks.XC_InitPackageResources
 import de.robv.android.xposed.callbacks.XC_LoadPackage
@@ -23,6 +23,7 @@ import eu.hn1f.droidcss.utils.getField
 import eu.hn1f.droidcss.utils.getFieldSilently
 import eu.hn1f.droidcss.utils.hookConstructor
 import eu.hn1f.droidcss.utils.hookMethod
+
 
 @Suppress("UNUSED_PARAMETER")
 class SysUI {
@@ -147,13 +148,24 @@ class SysUI {
         //phoneStatusBarView
 
         val mSwitch = findClass("android.widget.Switch")
+        var isInHook = false
 
-        mSwitch.hookConstructor().runBefore { param ->
-            Log.v("DroidCSS", "Forcing Framework Switch style")
-            param.args[0] = ContextThemeWrapper(param.args[0] as Context, android.R.style.Widget_Material_CompoundButton_Switch)
-            if(param.args.size > 2) {
-                param.args[2] = android.R.style.Widget_Material_CompoundButton_Switch
+        mSwitch.hookConstructor().runAfter { param ->
+            if(isInHook) {
+                return@runAfter
             }
+            isInHook = true
+            var theme = android.R.style.Widget_Material_Light_CompoundButton_Switch
+            val s = param.thisObject as Switch
+            if(isDarkMode(s.context)) {
+                theme = android.R.style.Widget_Material_CompoundButton_Switch
+            }
+            val ds = Switch(ContextThemeWrapper(s.context, theme))
+            s.trackDrawable = ds.trackDrawable
+            s.thumbDrawable = ds.thumbDrawable
+            s.background = ds.background
+            s.foreground = ds.foreground
+            isInHook = false
         }
 
         Log.v("DroidCSS", "Hello SystemUI mrrp~~ :3")
