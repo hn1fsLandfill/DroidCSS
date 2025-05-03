@@ -140,7 +140,13 @@ private fun dumpChildViewsRecursive(
     viewGroup: ViewGroup,
     indentationLevel: Int
 ) {
-
+    for (i in 0 until viewGroup.childCount) {
+        val childView = viewGroup.getChildAt(i)
+        logViewInfo(childView, indentationLevel + 1)
+        if (childView is ViewGroup) {
+            dumpChildViewsRecursive(childView, indentationLevel + 1)
+        }
+    }
 }
 
 private fun logViewInfo(view: View, indentationLevel: Int) {
