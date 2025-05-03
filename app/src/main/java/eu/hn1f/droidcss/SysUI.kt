@@ -18,6 +18,7 @@ import android.widget.TextView
 import de.robv.android.xposed.callbacks.XC_InitPackageResources
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import eu.hn1f.droidcss.utils.XposedHook.Companion.findClass
+import eu.hn1f.droidcss.utils.callMethod
 import eu.hn1f.droidcss.utils.dumpChildViews
 import eu.hn1f.droidcss.utils.getField
 import eu.hn1f.droidcss.utils.getFieldSilently
@@ -117,6 +118,12 @@ class SysUI {
                 // val icon: Object? = param.args[0].getFieldSilently("icon") as Object?
                 // Not active state
                 val defaultState: Int = param.args[0].getField("DEFAULT_STATE") as Int
+                var colorActive = ACTIVE_TILE_LIGHT
+                var color = INACTIVE_TILE_LIGHT
+                if(isDarkMode(t.context)) {
+                    color = INACTIVE_TILE
+                    colorActive = ACTIVE_TILE
+                }
 
                 val button: Button = t.findViewWithTag("buttonTile")
 
@@ -126,9 +133,9 @@ class SysUI {
                 button.text = lab
 
                 if(state == defaultState) {
-                    button.setTextColor(Color.BLACK)
+                    button.setTextColor(Color.parseColor(color))
                 } else {
-                    button.setTextColor(Color.parseColor("#ff33b5e5"))
+                    button.setTextColor(Color.parseColor(colorActive))
                 }
 
                 param.result = null
@@ -169,6 +176,54 @@ class SysUI {
             s.background = ds.background
             s.foreground = ds.foreground
             isInHook = false
+        }
+
+        val mButton = findClass("android.widget.Button")
+        var isInHookButton = false
+
+        mButton.hookConstructor().runAfter { param ->
+            val s = param.thisObject as Button
+            val name = s.resources.getResourceName(s.context.theme.callMethod("getAppliedStyleResId") as Int)
+            if(isInHookButton || !name.contains("Theme.SystemUI")) {
+                return@runAfter
+            }
+            isInHookButton = true
+            var theme = BUTTON_THEME_LIGHT
+            if(isDarkMode(s.context)) {
+                theme = BUTTON_THEME
+            }
+            val ds = Button(ContextThemeWrapper(s.context, theme))
+            s.background = ds.background
+            s.foreground = ds.foreground
+            s.setTextColor(ds.textColors)
+            isInHookButton = false
+        }
+
+        val footerView = findClass("com.android.systemui.statusbar.notification.footer.ui.view.FooterView")
+        footerView.hookMethod("updateColors").runBefore { param ->
+            param.result = null
+        }
+
+        val alphaButton = findClass("com.android.systemui.statusbar.AlphaOptimizedButton")
+        alphaButton.hookConstructor().runAfter { param ->
+            isInHookButton = true
+            val s = param.thisObject as Button
+            var theme = BUTTON_THEME_LIGHT
+            if(isDarkMode(s.context)) {
+                theme = BUTTON_THEME
+            }
+            val ds = Button(ContextThemeWrapper(s.context, theme))
+            s.background = ds.background
+            s.foreground = ds.foreground
+            s.setTextColor(ds.textColors)
+            isInHookButton = false
+        }
+
+        alphaButton.hookMethod("setBackgroundDrawable").runBefore { param ->
+            if(isInHookButton) {
+                return@runBefore
+            }
+            param.result = null
         }
 
         Log.v("DroidCSS", "Hello SystemUI mrrp~~ :3")
