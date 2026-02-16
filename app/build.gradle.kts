@@ -5,14 +5,18 @@ plugins {
 
 android {
     namespace = "eu.hn1f.droidcss"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "eu.hn1f.droidcss"
         minSdk = 31
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 2
         versionName = "1.0"
+    }
+
+    buildFeatures {
+        aidl = true
     }
 
     buildTypes {
