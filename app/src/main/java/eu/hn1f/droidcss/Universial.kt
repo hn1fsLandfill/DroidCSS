@@ -19,6 +19,7 @@ import eu.hn1f.droidcss.utils.callMethod
 import eu.hn1f.droidcss.utils.callMethodSilently
 import eu.hn1f.droidcss.utils.hookConstructor
 import eu.hn1f.droidcss.utils.hookMethod
+import eu.hn1f.droidcss.utils.setFieldSilently
 
 fun isDarkMode(context: Context): Boolean {
     val darkModeFlag = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
@@ -123,7 +124,8 @@ class Universial {
             val ds = Switch(param.args[0] as Context)
             Log.v("DroidCSS", "Cleaning up MaterialSwitch mess")
 
-            s.callMethod("setTrackDrawable",ds.trackDrawable)
+            s.callMethodSilently("setTrackDrawable",ds.trackDrawable)
+            s.setFieldSilently("trackDrawable", ds.trackDrawable)
 
             s.callMethodSilently("setShowText", false)
             s.callMethodSilently("setTrackDecorationTintList", ColorStateList.valueOf(Color.parseColor("#00FFFFFF")))
@@ -184,6 +186,12 @@ class Universial {
         }
 
         mButton.hookMethod("setShapeAppearanceModel").runBefore { param ->
+            param.result = null
+        }
+
+        val funPolice = findClass("com.google.android.material.internal.ThemeEnforcement")
+        funPolice.hookMethod("checkTheme").runBefore { param ->
+            Log.v("DroidCSS", "Stopped the fun police from crashing the app")
             param.result = null
         }
 
