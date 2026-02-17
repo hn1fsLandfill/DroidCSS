@@ -9,7 +9,6 @@ import android.widget.FrameLayout
 import android.widget.Switch
 import de.robv.android.xposed.callbacks.XC_InitPackageResources
 import de.robv.android.xposed.callbacks.XC_LoadPackage
-import eu.hn1f.droidcss.customSysUI.Loader
 import eu.hn1f.droidcss.utils.XposedHook.Companion.findClass
 import eu.hn1f.droidcss.utils.callMethod
 import eu.hn1f.droidcss.utils.dumpChildViews
@@ -34,18 +33,6 @@ class SysUI {
         notificationPanelView.hookMethod("addView").runAfter { param ->
             (param.thisObject as FrameLayout).dumpChildViews()
         }
-
-        Loader().onLoad(loadPackageParam)
-
-        /* val keyguardViewMediator = findClass("com.android.systemui.keyguard.KeyguardViewMediator")
-        if(keyguardViewMediator != null) {
-            keyguardViewMediator.hookMethod("handleSystemReady").runBefore { param ->
-                param.result = null
-            }
-            keyguardViewMediator.hookMethod("handleShowInner").runBefore { param ->
-                param.result = null
-            }
-        } */
 
         val qsImpl = findClass("com.android.systemui.qs.QSImpl")
         if(qsImpl != null) {
