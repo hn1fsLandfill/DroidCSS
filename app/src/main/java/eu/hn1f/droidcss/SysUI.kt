@@ -1,6 +1,10 @@
 package eu.hn1f.droidcss
 
 import android.annotation.SuppressLint
+import android.app.Service
+import android.content.ComponentName
+import android.content.Intent
+import android.os.UserHandle
 import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.View.OVER_SCROLL_NEVER
@@ -12,6 +16,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage
 import eu.hn1f.droidcss.utils.XposedHook.Companion.findClass
 import eu.hn1f.droidcss.utils.callMethod
 import eu.hn1f.droidcss.utils.dumpChildViews
+import eu.hn1f.droidcss.utils.getField
 import eu.hn1f.droidcss.utils.hookConstructor
 import eu.hn1f.droidcss.utils.hookMethod
 
@@ -28,101 +33,37 @@ class SysUI {
             param.args[0] = OVER_SCROLL_NEVER
         }
 
-        val notificationPanelView = findClass("com.android.systemui.shade.NotificationPanelView")
+        val systemUIService = findClass("com.android.systemui.SystemUIService")
+        if(systemUIService != null) {
+            Log.v("DroidCSS", "Hooked SystemUIService")
 
-        notificationPanelView.hookMethod("addView").runAfter { param ->
-            (param.thisObject as FrameLayout).dumpChildViews()
-        }
-
-        val qsImpl = findClass("com.android.systemui.qs.QSImpl")
-        if(qsImpl != null) {
-            Log.v("DroidCSS", "Hooked QSImpl")
-            /*qsImpl.hookConstructor().runBefore { param ->
-                param.setField("mQsDisabled", true)
-            } */
-        }
-
-        //val phoneStatusBarView = findClass("com.android.systemui.statusbar.phone.PhoneStatusBarView")
-        //phoneStatusBarView
-
-        val mSwitch = findClass("android.widget.Switch")
-        var isInHook = false
-
-        mSwitch.hookConstructor().runAfter { param ->
-            if(isInHook) {
-                return@runAfter
+            systemUIService.hookMethod("onCreate").runBefore { param ->
+                // incase framework fails us
+                Log.v("DroidCSS", "Starting our SystemUIService")
+                val service = param.thisObject as Service
+                service.callMethod("startServiceAsUser", Intent().apply {
+                    component = ComponentName(SYSTEMUI, ".SystemUIService")
+                }, UserHandle::class.getField("SYSTEM"))
+                param.result = null;
             }
-            isInHook = true
-            var theme = SWITCH_THEME_LIGHT
-            val s = param.thisObject as Switch
-            if(isDarkMode(s.context)) {
-                theme = SWITCH_THEME
+            systemUIService.hookMethod("onBind").runBefore { param ->
+                param.result = null;
             }
-            val ds = Switch(ContextThemeWrapper(s.context, theme))
-            s.trackDrawable = ds.trackDrawable
-            s.thumbDrawable = ds.thumbDrawable
-            s.background = ds.background
-            s.foreground = ds.foreground
-            isInHook = false
         }
 
-        val mButton = findClass("android.widget.Button")
-        var isInHookButton = false
-
-        mButton.hookConstructor().runAfter { param ->
-            val s = param.thisObject as Button
-            val name = s.resources.getResourceName(s.context.theme.callMethod("getAppliedStyleResId") as Int)
-            if(isInHookButton || !name.contains("Theme.SystemUI")) {
-                return@runAfter
+        val keyguardService = findClass("com.android.systemui.keyguard.KeyguardService")
+        if(keyguardService != null) {
+            Log.v("DroidCSS", "Hooked KeyguardService")
+            keyguardService.hookMethod("onCreate").runBefore { param ->
+                param.result = null;
             }
-            isInHookButton = true
-            var theme = BUTTON_THEME_LIGHT
-            if(isDarkMode(s.context)) {
-                theme = BUTTON_THEME
+            keyguardService.hookMethod("onBind").runBefore { param ->
+                param.result = null;
             }
-            val ds = Button(ContextThemeWrapper(s.context, theme))
-            s.background = ds.background
-            s.foreground = ds.foreground
-            s.setTextColor(ds.textColors)
-            isInHookButton = false
         }
-
-        val footerView = findClass("com.android.systemui.statusbar.notification.footer.ui.view.FooterView")
-        footerView.hookMethod("updateColors").runBefore { param ->
-            param.result = null
-        }
-
-        val alphaButton = findClass("com.android.systemui.statusbar.AlphaOptimizedButton")
-        alphaButton.hookConstructor().runAfter { param ->
-            isInHookButton = true
-            val s = param.thisObject as Button
-            var theme = BUTTON_THEME_LIGHT
-            if(isDarkMode(s.context)) {
-                theme = BUTTON_THEME
-            }
-            val ds = Button(ContextThemeWrapper(s.context, theme))
-            s.background = ds.background
-            s.foreground = ds.foreground
-            s.setTextColor(ds.textColors)
-            isInHookButton = false
-        }
-
-        alphaButton.hookMethod("setBackgroundDrawable").runBefore { param ->
-            if(isInHookButton) {
-                return@runBefore
-            }
-            param.result = null
-        }
-
-        Log.v("DroidCSS", "Hello SystemUI mrrp~~ :3")
     }
 
     fun onResources(initPackageResourcesParam: XC_InitPackageResources.InitPackageResourcesParam) {
-        /* initPackageResourcesParam.res.hookLayout("com.android.systemui", "layout", "status_bar", object : XC_LayoutInflated() {
-            override fun handleLayoutInflated(param: LayoutInflatedParam) {
-                //param.view.visibility = GONE;
-                param.view.background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(Color.MAGENTA, Color.WHITE))
-            }
-        }) */
+
     }
 }

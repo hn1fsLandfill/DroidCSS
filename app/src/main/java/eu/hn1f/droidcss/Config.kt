@@ -8,3 +8,8 @@ const val ACTIVE_TILE_LIGHT = "#ff2196F3"
 const val ACTIVE_TILE = "#ff64B5F6"
 const val INACTIVE_TILE_LIGHT = "#ff212121"
 const val INACTIVE_TILE = "#ffFFFFFF"
+const val USE_APPCOMPAT = true
+
+const val SYSTEMUI = "eu.hn1f.holoui"
+const val SYSTEMUI_SERVICE = "eu.hn1f.holoui/.SystemUIService"
+const val KEYGUARD_SERVICE = "eu.hn1f.holoui/.KeyguardService"

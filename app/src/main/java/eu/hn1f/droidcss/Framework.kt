@@ -7,10 +7,6 @@ import eu.hn1f.droidcss.utils.XposedHook.Companion.findClass
 import eu.hn1f.droidcss.utils.hookMethod
 
 class Framework {
-    val SYSTEMUI = "eu.hn1f.holoui"
-    val SYSTEMUI_SERVICE = "eu.hn1f.holoui/eu.hn1f.holoui.SystemUIService"
-    val KEYGUARD_SERVICE = "eu.hn1f.holoui/eu.hn1f.holoui.KeyguardService"
-
     fun onLoad(loadPackageParam: XC_LoadPackage.LoadPackageParam) {
         val systemServer = findClass("com.android.server.SystemServer")
         if(systemServer != null) {
@@ -23,16 +19,17 @@ class Framework {
         if(resources != null) {
             Log.v("DroidCSS", "Got Resources")
             resources.hookMethod("getString").runAfter { param ->
-                Log.v("DroidCSS", "resource ${param.args[0] as Int} -> ${param.result as String}")
                 if((param.result as String).contains("KeyguardService")) {
                     param.result = KEYGUARD_SERVICE;
-                    Log.v("DroidCSS", "new: ${param.result as String}")
+                    Log.v("DroidCSS", "redirect: ${param.args[0] as Int} -> ${param.result as String}")
                 } else if((param.result as String).contains("SystemUIService")) {
                     param.result = SYSTEMUI_SERVICE;
-                    Log.v("DroidCSS", "new: ${param.result as String}")
+                    Log.v("DroidCSS", "redirect: ${param.args[0] as Int} -> ${param.result as String}")
                 } else if((param.result as String).equals("com.android.systemui")) {
                     param.result = SYSTEMUI;
-                    Log.v("DroidCSS", "new: ${param.result as String}")
+                    Log.v("DroidCSS", "redirect: ${param.args[0] as Int} -> ${param.result as String}")
+                } else if((param.result as String).contains("com.android.systemui")) {
+                    Log.v("DroidCSS", "systemui mentioned in (${param.args[0]})")
                 }
             }
         }

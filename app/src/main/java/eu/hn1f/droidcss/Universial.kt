@@ -1,5 +1,6 @@
 package eu.hn1f.droidcss
 
+import android.R
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
@@ -8,6 +9,7 @@ import android.content.res.Resources
 import android.content.res.Resources.Theme
 import android.graphics.Color
 import android.graphics.PorterDuff.Mode
+import android.os.Build
 import android.util.Log
 import android.view.ContextThemeWrapper
 import android.widget.Button
@@ -55,6 +57,8 @@ class Universial {
         //if (c != null) {
             /* TODO */
         //}
+        // SignatureBypass().onLoad(loadPackageParam)
+
         val resTheme = findClass("android.content.res.Resources.Theme")
 
         resTheme.hookMethod("applyStyle").runBefore { param ->
@@ -106,11 +110,23 @@ class Universial {
 
         mSwitch.hookConstructor().runBefore { param ->
             Log.v("DroidCSS", "Attempt to use MaterialSwitch, forcing framework Switch Theme")
-            var theme = android.R.style.Widget_Material_Light_CompoundButton_Switch
 
-            if(isDarkMode(param.args[0] as Context)) {
-                Log.v("DroidCSS","Using Dark switch")
-                theme = android.R.style.Widget_Material_CompoundButton_Switch
+            var theme: Int
+
+            if(USE_APPCOMPAT) {
+                val context = (param.args[0] as Context)
+                theme = context.resources.getIdentifier(
+                    "Widget.AppCompat.CompoundButton.Switch",
+                    "style",
+                    context.applicationInfo.packageName
+                )
+            } else {
+                theme = R.style.Widget_Material_Light_CompoundButton_Switch
+
+                if(isDarkMode(param.args[0] as Context)) {
+                    Log.v("DroidCSS","Using Dark switch")
+                    theme = R.style.Widget_Material_CompoundButton_Switch
+                }
             }
 
             param.args[0] = ContextThemeWrapper(param.args[0] as Context, theme)
@@ -128,8 +144,8 @@ class Universial {
             s.setFieldSilently("trackDrawable", ds.trackDrawable)
 
             s.callMethodSilently("setShowText", false)
-            s.callMethodSilently("setTrackDecorationTintList", ColorStateList.valueOf(Color.parseColor("#00FFFFFF")))
-            s.callMethodSilently("setTrackDecorationTintMode", Mode.SRC_IN)
+            // s.callMethodSilently("setTrackDecorationTintList", ColorStateList.valueOf(Color.parseColor("#00FFFFFF")))
+            // s.callMethodSilently("setTrackDecorationTintMode", Mode.SRC_IN)
         }
 
         // com/google/android/material/dialog/MaterialAlertDialogBuilder
@@ -141,11 +157,11 @@ class Universial {
         // implementation of AlertDialog."
         mDialog.hookConstructor().runBefore { param ->
             Log.v("DroidCSS", "Attempt to use MaterialDialog, forcing AppCompat Dialog")
-            var theme = android.R.style.Theme_Material_Light_Dialog_NoActionBar
+            var theme = R.style.Theme_Material_Light_Dialog_NoActionBar
 
             if(isDarkMode(param.args[0] as Context)) {
                 Log.v("DroidCSS","Using Dark Dialog")
-                theme = android.R.style.Theme_Material_Dialog_NoActionBar
+                theme = R.style.Theme_Material_Dialog_NoActionBar
             }
 
             param.args[0] = ContextThemeWrapper(param.args[0] as Context, theme)
@@ -172,7 +188,7 @@ class Universial {
             b.backgroundTintList = db.backgroundTintList
             b.backgroundTintMode = db.backgroundTintMode
             b.backgroundTintBlendMode = db.backgroundTintBlendMode
-            if(android.os.Build.VERSION.SDK_INT > 34) {
+            if(Build.VERSION.SDK_INT > 34) {
                 b.highlights = db.highlights
             }
             b.highlightColor = db.highlightColor
