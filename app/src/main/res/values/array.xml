@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="module_scope" translatable="false">
-        <!--<item>android</item> Maybe one day -->
+        <item>android</item>
         <item>com.android.systemui</item>
         <item>com.android.settings</item>
     </string-array>

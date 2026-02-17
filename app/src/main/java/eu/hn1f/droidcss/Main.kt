@@ -16,14 +16,18 @@ class Main: IXposedHookZygoteInit, IXposedHookInitPackageResources, IXposedHookL
     //private val hookEntry = HookEntry()
 
     override fun handleInitPackageResources(initPackageResourcesParam: XC_InitPackageResources.InitPackageResourcesParam) {
-        hookRes.handleInitPackageResources(initPackageResourcesParam)
+        /*hookRes.handleInitPackageResources(initPackageResourcesParam)
         if(initPackageResourcesParam.packageName.contains("systemui")) {
             sys.onResources(initPackageResourcesParam)
-        }
+        } */
     }
 
     override fun handleLoadPackage(loadPackageParam: XC_LoadPackage.LoadPackageParam) {
         XposedHook.init(loadPackageParam)
+        if(loadPackageParam.packageName.equals("android")) {
+            Framework().onLoad(loadPackageParam)
+            return
+        }
         Universial().onLoad(loadPackageParam)
         if(loadPackageParam.packageName.contains("systemui") || loadPackageParam.packageName.contains("SystemUI")) {
             sys.onLoad(loadPackageParam)
