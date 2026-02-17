@@ -23,6 +23,11 @@ import eu.hn1f.droidcss.utils.hookMethod
 
 @Suppress("UNUSED_PARAMETER")
 class SysUI {
+    fun startServices(service: Service) {
+        service.callMethod("startServiceAsUser", Intent().apply {
+            component = ComponentName(SYSTEMUI, ".SystemUIService")
+        }, UserHandle.getUserHandleForUid(0))
+    }
 
     @Suppress("UNUSED_PARAMETER")
     @SuppressLint("SetTextI18n", "DiscouragedApi")
@@ -39,11 +44,8 @@ class SysUI {
 
             systemUIService.hookMethod("onCreate").runBefore { param ->
                 // incase framework fails us
-                Log.v("DroidCSS", "Starting our SystemUIService")
                 val service = param.thisObject as Service
-                service.callMethod("startServiceAsUser", Intent().apply {
-                    component = ComponentName(SYSTEMUI, ".SystemUIService")
-                }, UserHandle::class.getField("SYSTEM"))
+                startServices(service)
                 param.result = null;
             }
             systemUIService.hookMethod("onBind").runBefore { param ->
@@ -55,6 +57,8 @@ class SysUI {
         if(keyguardService != null) {
             Log.v("DroidCSS", "Hooked KeyguardService")
             keyguardService.hookMethod("onCreate").runBefore { param ->
+                val service = param.thisObject as Service
+                startServices(service)
                 param.result = null;
             }
             keyguardService.hookMethod("onBind").runBefore { param ->
