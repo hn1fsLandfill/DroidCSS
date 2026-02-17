@@ -12,14 +12,19 @@ import com.android.internal.policy.IKeyguardService
 import com.android.internal.policy.IKeyguardStateCallback
 
 class KeyguardService: Service() {
-    private class BinderService: IKeyguardService.Stub() {
+    private class BinderService(): IKeyguardService.Stub() {
         override fun setOccluded(isOccluded: Boolean, animate: Boolean) {}
         override fun addStateMonitorCallback(callback: IKeyguardStateCallback?) {}
-        override fun verifyUnlock(callback: IKeyguardExitCallback?) {}
+        override fun verifyUnlock(callback: IKeyguardExitCallback?) {
+            callback?.onKeyguardExitResult(true)
+        }
         override fun dismiss(
             callback: IKeyguardDismissCallback?,
             message: CharSequence?
-        ) {}
+        ) {
+            Log.v("DroidCSS", "dismissing $message as canceled")
+            callback?.onDismissCancelled()
+        }
         override fun onDreamingStarted() {}
         override fun onDreamingStopped() {}
         override fun onStartedGoingToSleep(pmSleepReason: Int) {}
@@ -35,7 +40,9 @@ class KeyguardService: Service() {
         override fun onScreenTurningOn(
             reason: Int,
             callback: IKeyguardDrawnCallback?
-        ) {}
+        ) {
+            callback?.onDrawn()
+        }
         override fun onScreenTurnedOn() {
             Log.v("DroidCSS", "mrow who woke me up")
         }
