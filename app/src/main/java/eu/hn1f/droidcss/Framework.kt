@@ -1,10 +1,13 @@
 package eu.hn1f.droidcss
 
 import android.content.ComponentName
+import android.content.pm.ApplicationInfo
 import android.util.Log
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import eu.hn1f.droidcss.utils.XposedHook.Companion.findClass
+import eu.hn1f.droidcss.utils.getField
 import eu.hn1f.droidcss.utils.hookMethod
+import eu.hn1f.droidcss.utils.setField
 
 class Framework {
     fun onLoad(loadPackageParam: XC_LoadPackage.LoadPackageParam) {
@@ -31,6 +34,40 @@ class Framework {
                 } else if((param.result as String).contains("com.android.systemui")) {
                     Log.v("DroidCSS", "systemui mentioned in (${param.args[0]})")
                 }
+            }
+        }
+
+        // Spoof SystemUI replacement as a system app
+        val appInfo = findClass("android.content.pm.ApplicationInfo")
+
+        appInfo.hookMethod("isSystemApp").runBefore { param ->
+            val app = param.thisObject as ApplicationInfo
+            if(app.packageName.equals(SYSTEMUI)) {
+                param.result = true;
+            }
+        }
+
+        appInfo.hookMethod("isSignedWithPlatformKey").runBefore { param ->
+            val app = param.thisObject as ApplicationInfo
+            if(app.packageName.equals(SYSTEMUI)) {
+                param.result = true;
+            }
+        }
+
+        appInfo.hookMethod("isAllowedToUseHiddenApis").runBefore { param ->
+            val app = param.thisObject as ApplicationInfo
+            if(app.packageName.equals(SYSTEMUI)) {
+                param.result = true;
+            }
+        }
+
+        val pkgManager = findClass("android.content.pm.PackageManager")
+
+        pkgManager.hookMethod("getApplicationInfoAsUser").runAfter { param ->
+            val result = param.result as ApplicationInfo
+            if(result != null && result.packageName.equals(SYSTEMUI)) {
+                result.flags = result.flags and ApplicationInfo.FLAG_SYSTEM
+                result.setField("privateFlags", result.getField("privateFlags") as Int and (1 shl 20))
             }
         }
     }
