@@ -66,8 +66,8 @@ class Framework {
         pkgManager.hookMethod("getApplicationInfoAsUser").runAfter { param ->
             val result = param.result as ApplicationInfo
             if(result != null && result.packageName.equals(SYSTEMUI)) {
-                result.flags = result.flags and ApplicationInfo.FLAG_SYSTEM
-                result.setField("privateFlags", result.getField("privateFlags") as Int and (1 shl 20))
+                result.flags = result.flags or ApplicationInfo.FLAG_SYSTEM
+                result.setField("privateFlags", result.getField("privateFlags") as Int or (1 shl 20))
             }
         }
     }
