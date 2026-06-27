@@ -13,6 +13,8 @@ import eu.hn1f.droidcss.utils.hookMethod
 // Remove backgrounds from app icons, WIP
 class IconBackgroundNuker {
     fun onLoad(loadPackageParam: XC_LoadPackage.LoadPackageParam) {
+        if(!REMOVE_ICONBGS) return;
+
         val adaptiveIconDrawable = findClass("android.graphics.drawable.AdaptiveIconDrawable")
 
         adaptiveIconDrawable.hookMethod("draw").runBefore { param ->
@@ -24,8 +26,7 @@ class IconBackgroundNuker {
 
 
             // TODO: Allow setting this per app
-            if(monochrome != null) {
-                monochrome.setTint(Color.BLUE);
+            if(monochrome != null && USE_MONOCHROME_ICONS) {
                 monochrome.draw(param.args[0] as Canvas)
             } else {
                 foreground.draw(param.args[0] as Canvas);

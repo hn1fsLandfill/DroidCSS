@@ -13,3 +13,7 @@ const val USE_APPCOMPAT = true
 const val SYSTEMUI = "eu.hn1f.holoui"
 const val SYSTEMUI_SERVICE = "eu.hn1f.holoui/.SystemUIService"
 const val KEYGUARD_SERVICE = "eu.hn1f.holoui/.KeyguardService"
+
+var REDIRECT_SYSTEMUI = true
+var REMOVE_ICONBGS = true
+const val USE_MONOCHROME_ICONS = false

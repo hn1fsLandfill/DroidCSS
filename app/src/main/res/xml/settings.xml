@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference android:title="Redirect SystemUI" android:summary="Currently this switch only works for HoloUI" android:key="redirSysUI"/>
+    <CheckBoxPreference android:title="Remove icon backgrounds" android:summary="(WIP) May break icons of some apps"  android:key="noIconBGs"/>
+</PreferenceScreen>

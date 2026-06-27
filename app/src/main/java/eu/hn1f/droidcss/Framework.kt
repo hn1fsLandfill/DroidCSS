@@ -19,7 +19,7 @@ class Framework {
         SignatureBypass().onLoad(loadPackageParam)
 
         val resources = findClass("android.content.res.Resources")
-        if(resources != null) {
+        if(resources != null && REDIRECT_SYSTEMUI) {
             Log.v("DroidCSS", "Got Resources")
             resources.hookMethod("getString").runAfter { param ->
                 if((param.result as String).contains("KeyguardService")) {
@@ -41,22 +41,22 @@ class Framework {
         val appInfo = findClass("android.content.pm.ApplicationInfo")
 
         appInfo.hookMethod("isSystemApp").runBefore { param ->
-            val app = param.thisObject as ApplicationInfo
-            if(app.packageName.equals(SYSTEMUI)) {
+            val app = param.thisObject as ApplicationInfo?
+            if(app?.packageName.equals(SYSTEMUI)) {
                 param.result = true;
             }
         }
 
         appInfo.hookMethod("isSignedWithPlatformKey").runBefore { param ->
-            val app = param.thisObject as ApplicationInfo
-            if(app.packageName.equals(SYSTEMUI)) {
+            val app = param.thisObject as ApplicationInfo?
+            if(app?.packageName.equals(SYSTEMUI)) {
                 param.result = true;
             }
         }
 
         appInfo.hookMethod("isAllowedToUseHiddenApis").runBefore { param ->
-            val app = param.thisObject as ApplicationInfo
-            if(app.packageName.equals(SYSTEMUI)) {
+            val app = param.thisObject as ApplicationInfo?
+            if(app?.packageName.equals(SYSTEMUI)) {
                 param.result = true;
             }
         }
@@ -64,9 +64,9 @@ class Framework {
         val pkgManager = findClass("android.content.pm.PackageManager")
 
         pkgManager.hookMethod("getApplicationInfoAsUser").runAfter { param ->
-            val result = param.result as ApplicationInfo
-            if(result != null && result.packageName.equals(SYSTEMUI)) {
-                result.flags = result.flags or ApplicationInfo.FLAG_SYSTEM
+            val result = param.result as ApplicationInfo?
+            if(result?.packageName.equals(SYSTEMUI)) {
+                result!!.flags = result.flags or ApplicationInfo.FLAG_SYSTEM
                 result.setField("privateFlags", result.getField("privateFlags") as Int or (1 shl 20))
             }
         }
