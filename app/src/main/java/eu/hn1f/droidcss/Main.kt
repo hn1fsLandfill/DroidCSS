@@ -29,6 +29,7 @@ class Main: IXposedHookZygoteInit, IXposedHookInitPackageResources, IXposedHookL
             return
         }
         Universial().onLoad(loadPackageParam)
+        IconBackgroundNuker().onLoad(loadPackageParam)
         if(loadPackageParam.packageName.contains("systemui") || loadPackageParam.packageName.contains("SystemUI")) {
             sys.onLoad(loadPackageParam)
         } else if(loadPackageParam.packageName.contains("com.android.settings")) {
