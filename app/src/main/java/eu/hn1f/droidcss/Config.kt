@@ -17,3 +17,7 @@ const val KEYGUARD_SERVICE = "eu.hn1f.holoui/.KeyguardService"
 var REDIRECT_SYSTEMUI = true
 var REMOVE_ICONBGS = true
 const val USE_MONOCHROME_ICONS = false
+
+// Some apps that don't look good without the background
+var APP_BLACKLIST: Array<String> = arrayOf("ru.zdevs.zarchiver", "app.vanadium.browser",
+    "moe.shizuku.privileged.api", "com.google.android.apps.translate")
