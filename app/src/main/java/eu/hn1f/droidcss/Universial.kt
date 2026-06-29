@@ -2,6 +2,7 @@ package eu.hn1f.droidcss
 
 import android.R
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -15,6 +16,7 @@ import android.view.ContextThemeWrapper
 import android.widget.Button
 import android.widget.CompoundButton
 import android.widget.Switch
+import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import eu.hn1f.droidcss.utils.XposedHook.Companion.findClass
 import eu.hn1f.droidcss.utils.callMethod
@@ -26,6 +28,31 @@ import eu.hn1f.droidcss.utils.setFieldSilently
 fun isDarkMode(context: Context): Boolean {
     val darkModeFlag = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
     return darkModeFlag == Configuration.UI_MODE_NIGHT_YES
+}
+
+fun getTheme(darkMode: Boolean, themeName: String): Int? {
+    val theme = if(darkMode)
+        when (themeName) {
+            "Vintage" -> android.R.style.Theme
+            "Vintage.NoTitleBar" -> android.R.style.Theme_NoTitleBar
+            "Holo" -> android.R.style.Theme_Holo
+            "Holo.NoActionBar" -> android.R.style.Theme_Holo_NoActionBar
+            "Material" -> android.R.style.Theme_Material
+            "Material.NoActionBar" -> android.R.style.Theme_Material_NoActionBar
+            else -> null
+        }
+    else
+        when (themeName) {
+            "Vintage" -> android.R.style.Theme_Light
+            "Vintage.NoTitleBar" -> android.R.style.Theme_Light_NoTitleBar
+            "Holo" -> android.R.style.Theme_Holo_Light
+            "Holo.NoActionBar" -> android.R.style.Theme_Holo_Light_NoActionBar
+            "Material" -> android.R.style.Theme_Material_Light
+            "Material.NoActionBar" -> android.R.style.Theme_Material_NoActionBar
+            else -> null
+        }
+
+    return theme
 }
 
 @SuppressLint("DiscouragedApi")
@@ -52,7 +79,7 @@ class Universial {
     }
 
     @SuppressLint("SetTextI18n")
-    fun onLoad(@Suppress("UNUSED_PARAMETER") loadPackageParam: XC_LoadPackage.LoadPackageParam) {
+    fun onLoad(loadPackageParam: XC_LoadPackage.LoadPackageParam, settings: XSharedPreferences) {
         //val c = findClass("com.android.settings")
         //if (c != null) {
             /* TODO */
@@ -203,6 +230,22 @@ class Universial {
 
         mButton.hookMethod("setShapeAppearanceModel").runBefore { param ->
             param.result = null
+        }
+
+        val themeName = settings.getString("theme_${loadPackageParam.packageName}", "Default")
+
+        if(themeName != "Default") {
+            val activity = findClass("android.app.Activity")
+
+            activity.hookMethod("onCreate").runBefore { param ->
+                val act = param.thisObject as Activity
+                val theme = getTheme(isDarkMode(act), themeName!!)
+                if(theme != null) act.setTheme(theme)
+            }.runAfter { param ->
+                val act = param.thisObject as Activity
+                val theme = getTheme(isDarkMode(act), themeName!!)
+                if(theme != null) act.setTheme(theme)
+            }
         }
 
         val funPolice = findClass("com.google.android.material.internal.ThemeEnforcement")

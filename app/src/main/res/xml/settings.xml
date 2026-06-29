@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <CheckBoxPreference android:title="Redirect SystemUI" android:summary="Currently this switch only works for HoloUI" android:key="redirSysUI"/>
-    <CheckBoxPreference android:title="Remove icon backgrounds" android:summary="(WIP) May break icons of some apps"  android:key="noIconBGs"/>
+    <CheckBoxPreference android:title="Free icons from icon jail" android:summary="(WIP) May break icons of some apps"  android:key="removeIconBGs"/>
+    <PreferenceScreen android:title="Set per app quirks" android:summary="Customize icons and force alternative themes" android:key="appList"/>
 </PreferenceScreen>

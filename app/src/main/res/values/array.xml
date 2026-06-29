@@ -5,4 +5,14 @@
         <item>com.android.systemui</item>
         <item>com.android.settings</item>
     </string-array>
+
+    <string-array name="themes">
+        <item>Default</item>
+        <item>Vintage</item>
+        <item>Vintage.NoTitleBar</item>
+        <item>Holo</item>
+        <item>Holo.NoActionBar</item>
+        <item>Material</item>
+        <item>Material.NoActionBar</item>
+    </string-array>
 </resources>

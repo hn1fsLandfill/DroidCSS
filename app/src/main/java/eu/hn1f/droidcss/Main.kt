@@ -39,12 +39,12 @@ class Main: IXposedHookZygoteInit, IXposedHookInitPackageResources, IXposedHookL
             Framework().onLoad(loadPackageParam)
             return
         }
-        Universial().onLoad(loadPackageParam)
-        IconBackgroundNuker().onLoad(loadPackageParam)
+        Universial().onLoad(loadPackageParam, settings)
+        IconBackgroundNuker().onLoad(loadPackageParam, settings)
         if(loadPackageParam.packageName.contains("systemui") || loadPackageParam.packageName.contains("SystemUI")) {
             sys.onLoad(loadPackageParam)
         } else if(loadPackageParam.packageName.contains("com.android.settings")) {
-            Settings().onLoad(loadPackageParam)
+            Settings().onLoad(loadPackageParam, settings)
         }
         //hookEntry.handleLoadPackage(loadPackageParam)
     }

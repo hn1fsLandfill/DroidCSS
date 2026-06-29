@@ -4,10 +4,6 @@ const val SWITCH_THEME_LIGHT = android.R.style.Widget_Material_Light_CompoundBut
 const val SWITCH_THEME = android.R.style.Widget_Material_CompoundButton_Switch
 const val BUTTON_THEME_LIGHT = android.R.style.Widget_Material_Light_Button
 const val BUTTON_THEME = android.R.style.Widget_Material_Button
-const val ACTIVE_TILE_LIGHT = "#ff2196F3"
-const val ACTIVE_TILE = "#ff64B5F6"
-const val INACTIVE_TILE_LIGHT = "#ff212121"
-const val INACTIVE_TILE = "#ffFFFFFF"
 const val USE_APPCOMPAT = true
 
 const val SYSTEMUI = "eu.hn1f.holoui"
@@ -16,8 +12,7 @@ const val KEYGUARD_SERVICE = "eu.hn1f.holoui/.KeyguardService"
 
 var REDIRECT_SYSTEMUI = true
 var REMOVE_ICONBGS = true
-const val USE_MONOCHROME_ICONS = false
-
-// Some apps that don't look good without the background
-var APP_BLACKLIST: Array<String> = arrayOf("ru.zdevs.zarchiver", "app.vanadium.browser",
-    "moe.shizuku.privileged.api", "com.google.android.apps.translate")
+var THEME = android.R.style.Theme_Holo
+var THEME_NOACTION = android.R.style.Theme_Holo_NoActionBar
+var THEME_LIGHT = android.R.style.Theme_Holo_Light
+var THEME_LIGHT_NOACTION = android.R.style.Theme_Holo_Light_NoActionBar

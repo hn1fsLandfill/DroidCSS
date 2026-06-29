@@ -23,12 +23,6 @@ import eu.hn1f.droidcss.utils.hookMethod
 
 @Suppress("UNUSED_PARAMETER")
 class SysUI {
-    fun startServices(service: Service) {
-        service.callMethod("startServiceAsUser", Intent().apply {
-            component = ComponentName(SYSTEMUI, ".SystemUIService")
-        }, UserHandle.getUserHandleForUid(0))
-    }
-
     @Suppress("UNUSED_PARAMETER")
     @SuppressLint("SetTextI18n", "DiscouragedApi")
     fun onLoad(loadPackageParam: XC_LoadPackage.LoadPackageParam) {
@@ -36,34 +30,6 @@ class SysUI {
 
         androidView.hookMethod("setOverScrollMode").runBefore { param ->
             param.args[0] = OVER_SCROLL_NEVER
-        }
-
-        val systemUIService = findClass("com.android.systemui.SystemUIService")
-        if(systemUIService != null) {
-            Log.v("DroidCSS", "Hooked SystemUIService")
-
-            systemUIService.hookMethod("onCreate").runBefore { param ->
-                // incase framework fails us
-                val service = param.thisObject as Service
-                startServices(service)
-                param.result = null;
-            }
-            systemUIService.hookMethod("onBind").runBefore { param ->
-                param.result = null;
-            }
-        }
-
-        val keyguardService = findClass("com.android.systemui.keyguard.KeyguardService")
-        if(keyguardService != null) {
-            Log.v("DroidCSS", "Hooked KeyguardService")
-            keyguardService.hookMethod("onCreate").runBefore { param ->
-                val service = param.thisObject as Service
-                startServices(service)
-                param.result = null;
-            }
-            keyguardService.hookMethod("onBind").runBefore { param ->
-                param.result = null;
-            }
         }
     }
 

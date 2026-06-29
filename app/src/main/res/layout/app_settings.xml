@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableStart="@mipmap/ic_launcher"
+        android:gravity="center"
+        android:textSize="24sp"
+        android:text="AppName"
+        android:id="@+id/appDetail"/>
+
+    <Switch
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Force into icon jail"
+        android:id="@+id/noIconBG"/>
+
+    <Switch
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tint monochrome/normal icon"
+        android:id="@+id/tintIcon"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tint color"
+        android:id="@+id/tintColorToggle"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Themes"/>
+    <Spinner
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:id="@+id/themePicker"/>
+</LinearLayout>
