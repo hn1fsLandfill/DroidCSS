@@ -1,11 +1,14 @@
 package eu.hn1f.droidcss
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.util.Log
+import android.view.ContextThemeWrapper
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import eu.hn1f.droidcss.utils.XposedHook.Companion.findClass
 import eu.hn1f.droidcss.utils.getField
+import eu.hn1f.droidcss.utils.hookConstructor
 import eu.hn1f.droidcss.utils.hookMethod
 import eu.hn1f.droidcss.utils.setField
 
@@ -61,13 +64,25 @@ class Framework {
             }
         }
 
-        val pkgManager = findClass("android.content.pm.PackageManager")
+        val pkgManager = findClass("android.app.ApplicationPackageManager")
 
         pkgManager.hookMethod("getApplicationInfoAsUser").runAfter { param ->
             val result = param.result as ApplicationInfo?
             if(result?.packageName.equals(SYSTEMUI)) {
                 result!!.flags = result.flags or ApplicationInfo.FLAG_SYSTEM
                 result.setField("privateFlags", result.getField("privateFlags") as Int or (1 shl 20))
+            }
+        }
+
+        if(HOLO_FRAMEWORK_DIALOGS) {
+            val dialog = findClass("android.app.Dialog")
+            dialog.hookConstructor().runBefore { param ->
+                val context = param.args[0] as Context
+                val theme = if(isDarkMode(context)) android.R.style.Theme_Holo_Dialog
+                    else android.R.style.Theme_Holo_Light_Dialog
+                param.args[0] = ContextThemeWrapper(context, theme)
+                if(param.args[1] is Int)
+                    param.args[1] = theme
             }
         }
     }

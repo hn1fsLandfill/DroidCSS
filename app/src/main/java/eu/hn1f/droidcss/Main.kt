@@ -33,6 +33,7 @@ class Main: IXposedHookZygoteInit, IXposedHookInitPackageResources, IXposedHookL
         if(settings.file.canRead()) {
             REDIRECT_SYSTEMUI = settings.getBoolean("redirSysUI", false)
             REMOVE_ICONBGS = settings.getBoolean("removeIconBGs", true)
+            HOLO_FRAMEWORK_DIALOGS = settings.getBoolean("holoFrameworkDialogs", false)
         }
 
         if(loadPackageParam.packageName.equals("android")) {

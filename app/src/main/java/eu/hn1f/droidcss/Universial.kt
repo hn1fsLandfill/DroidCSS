@@ -48,7 +48,7 @@ fun getTheme(darkMode: Boolean, themeName: String): Int? {
             "Holo" -> android.R.style.Theme_Holo_Light
             "Holo.NoActionBar" -> android.R.style.Theme_Holo_Light_NoActionBar
             "Material" -> android.R.style.Theme_Material_Light
-            "Material.NoActionBar" -> android.R.style.Theme_Material_NoActionBar
+            "Material.NoActionBar" -> android.R.style.Theme_Material_Light_NoActionBar
             else -> null
         }
 

@@ -11,8 +11,5 @@ const val SYSTEMUI_SERVICE = "eu.hn1f.holoui/.SystemUIService"
 const val KEYGUARD_SERVICE = "eu.hn1f.holoui/.KeyguardService"
 
 var REDIRECT_SYSTEMUI = true
+var HOLO_FRAMEWORK_DIALOGS = false
 var REMOVE_ICONBGS = true
-var THEME = android.R.style.Theme_Holo
-var THEME_NOACTION = android.R.style.Theme_Holo_NoActionBar
-var THEME_LIGHT = android.R.style.Theme_Holo_Light
-var THEME_LIGHT_NOACTION = android.R.style.Theme_Holo_Light_NoActionBar

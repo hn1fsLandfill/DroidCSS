@@ -140,6 +140,7 @@ class SettingsActivity: PreferenceActivity() {
         addPreferencesFromResource(R.xml.settings)
         checkboxSetting("redirSysUI", false)
         checkboxSetting("removeIconBGs", true)
+        checkboxSetting("holoFrameworkDialogs", false)
 
         val appList = findPreference("appList") as PreferenceScreen
         for(app in packageManager.getInstalledApplications(0)) {
