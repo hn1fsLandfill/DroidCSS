@@ -56,9 +56,8 @@ class Settings {
             val holder = param.args[0] as Object
             val itemView = holder.getField("itemView") as ViewGroup
 
-            // R.styleable.selectableItemBackground
             val selectedBg = itemView.context.obtainStyledAttributes(arrayOf(
-                0x0101030e
+                androidStyleableAttrs.selectableItemBackground
             ).toIntArray())
             itemView.background = selectedBg.getDrawable(0)
             holder.setField("mBackground", itemView.background)
