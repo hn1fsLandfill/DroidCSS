@@ -57,9 +57,12 @@ class Settings {
             val itemView = holder.getField("itemView") as ViewGroup
 
             // R.styleable.selectableItemBackground
-            val selectedBg = itemView.context.obtainStyledAttributes(arrayOf(0x0101030e).toIntArray())
+            val selectedBg = itemView.context.obtainStyledAttributes(arrayOf(
+                0x0101030e
+            ).toIntArray())
             itemView.background = selectedBg.getDrawable(0)
             holder.setField("mBackground", itemView.background)
+            itemView.setPadding(0,0,0,0)
             selectedBg.recycle()
 
             Log.v("DroidCSS", "hook onBindViewHolder")
