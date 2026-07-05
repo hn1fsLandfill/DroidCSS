@@ -31,10 +31,6 @@ class Settings {
     fun onLoad(loadPackageParam: XC_LoadPackage.LoadPackageParam, settings: XSharedPreferences) {
         val themeName = settings.getString("theme_${loadPackageParam.packageName}", "Default")
 
-        val settingsThemeHelper = findClass("com.android.settingslib.widget.SettingsThemeHelper")
-
-        settingsThemeHelper.hookMethod("isExpressiveTheme").runBefore { param -> Log.v("DroidCSS", "not expressive"); param.result = false }
-
         val androidxPreference = findClass("androidx.preference.Preference")
         androidxPreference.hookConstructor().runBefore { param ->
             val mContext = param.args[0] as Context
@@ -47,25 +43,34 @@ class Settings {
         }
         androidxPreference.hookMethod("onBindViewHolder").runAfter { param ->
             val holder = param.args[0] as Object
-            // val itemView = holder.getField("itemView") as View
-
-            // itemView.background = ColorDrawable(Color.RED)
-        }
-        val untitledCategory = findClass("com.android.settingslib.widget.UntitledPreferenceCategory")
-        val theR = findClass("com.android.settingslib.widget.category.R")
-        untitledCategory.hookConstructor().runAfter { param ->
-            val layout = theR.getField("layout")
-                .getField("settingslib_untitled_preference_category") as Int
-
-            param.thisObject.callMethod("setLayoutResource", layout)
+            val itemView = holder.getField("itemView") as View
         }
 
+        val roundCornerPreferenceAdapter = findClass("com.android.settings.core.RoundCornerPreferenceAdapter")
+        roundCornerPreferenceAdapter.hookMethod("updateBackground").runBefore { param ->
+            param.result = null
+        }
+
+        val restrictedCategory = findClass("com.android.settings.widget.HomepagePreferenceLayoutHelper")
+        restrictedCategory.hookMethod("onBindViewHolder").runBefore { param ->
+            val holder = param.args[0] as Object
+            val itemView = holder.getField("itemView") as ViewGroup
+
+            // R.styleable.selectableItemBackground
+            val selectedBg = itemView.context.obtainStyledAttributes(arrayOf(0x0101030e).toIntArray())
+            itemView.background = selectedBg.getDrawable(0)
+            holder.setField("mBackground", itemView.background)
+            selectedBg.recycle()
+
+            Log.v("DroidCSS", "hook onBindViewHolder")
+            param.result = null
+        }
+
+        // Turn the expandable Material3 AppBar into a static brick like on older Material versions
         val appBarLayout = findClass("com.google.android.material.appbar.AppBarLayout")
         appBarLayout.hookConstructor().runAfter { param ->
             val ts = param.thisObject as ViewGroup
             ts.callMethod("setExpanded", false, false)
-            // I should consider replacing this joke with the framework ActionBar
-            // ts.setVisibility(View.GONE)
         }
         appBarLayout.hookMethod("setExpanded").runBefore { param ->
             param.args[0] = false
@@ -73,15 +78,8 @@ class Settings {
         }
 
         val appBarLayoutBehavior = findClass("com.google.android.material.appbar.AppBarLayout.Behavior")
-
         appBarLayoutBehavior.hookMethod("onNestedPreScroll").runBefore { param -> param.result = null }
         appBarLayoutBehavior.hookMethod("onNestedScroll").runBefore { param -> param.result = null }
-
-        val headerBehavior = findClass("com.google.android.material.appbar.HeaderBehavior")
-        headerBehavior.hookMethod("canDragView").runBefore { param ->
-            param.result = false
-        }
-        //headerBehavior.hookMethod("onInterceptTouchEvent").runBefore { param -> param.result = true }
 
         Log.v("DroidCSS", "Hello Settings mrrp~~ :3")
     }
