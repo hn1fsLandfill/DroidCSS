@@ -132,49 +132,6 @@ class Universial {
             }
         }
 
-        val mSwitch = findClass("com.google.android.material.materialswitch.MaterialSwitch")
-        //val switchCompat = findClass("androidx.appcompat.widget")
-
-        mSwitch.hookConstructor().runBefore { param ->
-            Log.v("DroidCSS", "Attempt to use MaterialSwitch, forcing framework Switch Theme")
-
-            var theme: Int
-
-            if(USE_APPCOMPAT) {
-                val context = (param.args[0] as Context)
-                theme = context.resources.getIdentifier(
-                    "Widget.AppCompat.CompoundButton.Switch",
-                    "style",
-                    context.applicationInfo.packageName
-                )
-            } else {
-                theme = R.style.Widget_Material_Light_CompoundButton_Switch
-
-                if(isDarkMode(param.args[0] as Context)) {
-                    Log.v("DroidCSS","Using Dark switch")
-                    theme = R.style.Widget_Material_CompoundButton_Switch
-                }
-            }
-
-            param.args[0] = ContextThemeWrapper(param.args[0] as Context, theme)
-
-            if(param.args.size > 2) {
-                param.args[2] = theme
-            }
-        }.runAfter { param ->
-            val s: CompoundButton = param.thisObject as CompoundButton
-            //val ds: CompoundButton = switchCompat.callMethod("SwitchCompat", param.args[0] as Context) as CompoundButton
-            val ds = Switch(param.args[0] as Context)
-            Log.v("DroidCSS", "Cleaning up MaterialSwitch mess")
-
-            s.callMethodSilently("setTrackDrawable",ds.trackDrawable)
-            s.setFieldSilently("trackDrawable", ds.trackDrawable)
-
-            s.callMethodSilently("setShowText", false)
-            // s.callMethodSilently("setTrackDecorationTintList", ColorStateList.valueOf(Color.parseColor("#00FFFFFF")))
-            // s.callMethodSilently("setTrackDecorationTintMode", Mode.SRC_IN)
-        }
-
         // com/google/android/material/dialog/MaterialAlertDialogBuilder
         val mDialog = findClass("com.google.android.material.dialog.MaterialAlertDialogBuilder")
         val compatDialog = findClass("androidx.appcompat.app.AlertDialog.Builder")
@@ -208,7 +165,7 @@ class Universial {
                 theme = BUTTON_THEME
             }
 
-            val db = Button(ContextThemeWrapper(param.args[0] as Context, theme))
+            val db = Button(param.args[0] as Context, null, 0, 0)
             val b = param.thisObject as Button
 
             b.background = db.background
@@ -223,9 +180,11 @@ class Universial {
             b.foregroundTintList = db.foregroundTintList
             b.foregroundTintMode = db.foregroundTintMode
             b.foregroundTintBlendMode = db.foregroundTintBlendMode
-            b.setTextColor(db.textColors)
-            b.setHintTextColor(db.hintTextColors)
-            b.setLinkTextColor(db.linkTextColors)
+            try {
+                b.setTextColor(db.textColors)
+                b.setHintTextColor(db.hintTextColors)
+                b.setLinkTextColor(db.linkTextColors)
+            } catch (ignored: Exception) {}
         }
 
         mButton.hookMethod("setShapeAppearanceModel").runBefore { param ->
@@ -246,8 +205,104 @@ class Universial {
                 val theme = getTheme(isDarkMode(act), themeName!!)
                 if(theme != null) act.setTheme(theme)
             }
-        }
 
+            val materialThemeOverlay = findClass("com.google.android.material.theme.overlay.MaterialThemeOverlay")
+            materialThemeOverlay.hookMethod("wrap").runBefore { param ->
+                val theme = getTheme(isDarkMode(param.args[0] as Context), themeName!!)
+                if(theme != null) param.result = ContextThemeWrapper(param.args[0] as Context, theme)
+            }
+
+            val typedArray = findClass("android.content.res.TypedArray")
+            typedArray.hookMethod("getDimensionPixelSize").runAfter { param ->
+                if(param.hasThrowable()) {
+                    param.throwable = null
+                    param.result = 0
+                }
+            }
+            typedArray.hookMethod("getDimensionPixelOffset").runAfter { param ->
+                if(param.hasThrowable()) {
+                    param.throwable = null
+                    param.result = 0
+                }
+            }
+
+            val mSwitch = findClass("com.google.android.material.materialswitch.MaterialSwitch")
+            //val switchCompat = findClass("androidx.appcompat.widget")
+
+            mSwitch.hookConstructor().runBefore { param ->
+                Log.v("DroidCSS", "Attempt to use MaterialSwitch, forcing framework Switch Theme")
+                var context = param.args[0] as Context
+                var theme = getTheme(isDarkMode(context), themeName!!)
+
+                if(theme != null) {
+                    val switchStyle = ContextThemeWrapper(context, theme).obtainStyledAttributes(arrayOf(
+                        androidStyleableAttrs.switchStyle
+                    ).toIntArray())
+
+                    theme = switchStyle.getResourceId(0, 0)
+                    context = ContextThemeWrapper(context, theme)
+                    param.args[0] = context
+                    switchStyle.recycle()
+
+                    if (param.args.size > 3)
+                        param.args[3] = theme
+                }
+            }.runAfter { param ->
+                val s: CompoundButton = param.thisObject as CompoundButton
+                Log.v("DroidCSS", "Cleaning up MaterialSwitch mess")
+                // switchStyle
+                val switchStyle = s.context.obtainStyledAttributes(arrayOf(
+                    androidStyleableAttrs.track,
+                    androidStyleableAttrs.thumb,
+                    androidStyleableAttrs.switchTextAppearance,
+                    androidStyleableAttrs.background,
+                    androidStyleableAttrs.showText,
+                    androidStyleableAttrs.switchPadding,
+                    androidStyleableAttrs.switchMinWidth,
+                    androidStyleableAttrs.thumbTextPadding,
+                    androidStyleableAttrs.textOn,
+                    androidStyleableAttrs.textOff
+                ).toIntArray())
+
+                s.callMethodSilently("setTrackDrawable", switchStyle.getDrawable(0))
+                s.callMethodSilently("setThumbDrawable", switchStyle.getDrawable(1))
+                s.setBackgroundResource(switchStyle.getResourceId(3, 0))
+
+                val switchPadding = switchStyle.getDimension(5, 0f).toInt()
+                s.callMethodSilently("setSwitchPadding", switchPadding)
+                s.setFieldSilently("mSwitchPadding", switchPadding)
+
+                val switchMinWidth = switchStyle.getDimension(6, 0f).toInt()
+                s.callMethodSilently("setSwitchMinWidth", switchMinWidth)
+                s.setFieldSilently("mSwitchMinWidth", switchMinWidth)
+
+                val thumbTextPadding = switchStyle.getDimension(7, 0f).toInt()
+                s.callMethodSilently("setThumbTextPadding", thumbTextPadding)
+                s.setFieldSilently("mThumbTextPadding", thumbTextPadding)
+
+                val textOn = switchStyle.getString(8)
+                s.callMethodSilently("setTextOn", textOn)
+                s.setFieldSilently("mTextOn", textOn)
+
+                val textOff = switchStyle.getString(9)
+                s.callMethodSilently("setTextOff", textOff)
+                s.setFieldSilently("mTextOff", textOff)
+
+                var showText = switchStyle.getBoolean(4, false)
+                // workaround: showtext doesn't work sometimes
+                if(themeName!!.contains("Holo"))
+                    showText = true
+
+                s.callMethodSilently("setShowText", showText)
+                s.setFieldSilently("mShowText", showText)
+
+                s.setTextAppearance(switchStyle.getResourceId(2, 0))
+                s.callMethodSilently("setSwitchTextAppearance",
+                    s.context, switchStyle.getResourceId(2, 0))
+
+                switchStyle.recycle()
+            }
+        }
         val funPolice = findClass("com.google.android.material.internal.ThemeEnforcement")
         funPolice.hookMethod("checkTheme").runBefore { param ->
             Log.v("DroidCSS", "Stopped the fun police from crashing the app")
