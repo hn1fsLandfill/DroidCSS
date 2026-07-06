@@ -78,7 +78,7 @@ class Universial {
         return id
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "ResourceType")
     fun onLoad(loadPackageParam: XC_LoadPackage.LoadPackageParam, settings: XSharedPreferences) {
         //val c = findClass("com.android.settings")
         //if (c != null) {
@@ -267,6 +267,8 @@ class Universial {
                 s.callMethodSilently("setTrackDrawable", switchStyle.getDrawable(0))
                 s.callMethodSilently("setThumbDrawable", switchStyle.getDrawable(1))
                 s.setBackgroundResource(switchStyle.getResourceId(3, 0))
+
+                if(themeName!!.contains("Material")) return@runAfter;
 
                 val switchPadding = switchStyle.getDimension(5, 0f).toInt()
                 s.callMethodSilently("setSwitchPadding", switchPadding)
