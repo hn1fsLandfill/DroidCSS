@@ -30,6 +30,18 @@ class Framework {
                     Log.v("DroidCSS", "redirect: ${param.args[0] as Int} -> ${param.result as String}")
                 } else if((param.result as String).contains("SystemUIService")) {
                     param.result = SYSTEMUI_SERVICE;
+                    Log.v(
+                        "DroidCSS",
+                        "redirect: ${param.args[0] as Int} -> ${param.result as String}"
+                    )
+                } else if((param.result as String).contains("DozeService")) {
+                    param.result = DOZE_SERVICE;
+                    Log.v("DroidCSS", "redirect: ${param.args[0] as Int} -> ${param.result as String}")
+                } else if((param.result as String).contains("ScreenshotService")) {
+                    param.result = SCREENSHOT_SERVICE;
+                    Log.v("DroidCSS", "redirect: ${param.args[0] as Int} -> ${param.result as String}")
+                } else if((param.result as String).contains("ScreenshotServiceErrorReceiver")) {
+                    param.result = SCREENSHOT_ERROR_RECEIVER;
                     Log.v("DroidCSS", "redirect: ${param.args[0] as Int} -> ${param.result as String}")
                 } else if((param.result as String).equals("com.android.systemui")) {
                     param.result = SYSTEMUI;

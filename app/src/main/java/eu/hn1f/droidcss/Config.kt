@@ -9,6 +9,9 @@ const val USE_APPCOMPAT = true
 const val SYSTEMUI = "eu.hn1f.holoui"
 const val SYSTEMUI_SERVICE = "eu.hn1f.holoui/.SystemUIService"
 const val KEYGUARD_SERVICE = "eu.hn1f.holoui/.KeyguardService"
+const val DOZE_SERVICE = "eu.hn1f.holoui/.miscServices.DozeService"
+const val SCREENSHOT_SERVICE = "eu.hn1f.holoui/.miscServices.screenshot.TakeScreenshotService"
+const val SCREENSHOT_ERROR_RECEIVER = "eu.hn1f.holoui/.miscServices.screenshot.ScreenshotServiceErrorReceiver"
 
 var REDIRECT_SYSTEMUI = true
 var HOLO_FRAMEWORK_DIALOGS = false
